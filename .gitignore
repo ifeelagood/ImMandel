@@ -1,0 +1,21 @@
+# build artifacts
+*.exe
+*.dll
+*.obj
+*.o
+*.lib
+*.a
+*.exp
+*.ilk
+*.ipdb
+*.iobj
+*.pdb
+*.idb
+*.map
+
+build/
+install/
+
+.vs
+
+vcpkg_installed
