@@ -5,6 +5,7 @@
       "features": [
         "docking-experimental"
       ]
-    }
+    },
+    "eigen3"
   ]
 }

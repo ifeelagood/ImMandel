@@ -39,10 +39,13 @@ endforeach(LIBRARY)
 
 # https://cmake.org/cmake/help/latest/command/find_package.html
 
+
 find_package(imgui CONFIG REQUIRED)
+find_package(Eigen3 CONFIG REQUIRED)
 
 set(IMMANDEL_PACKAGE_LIBRARIES
     imgui::imgui
+    Eigen3::Eigen
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${IMMANDEL_LIBRARIES} ${PACKAGES_PROVIDES})
