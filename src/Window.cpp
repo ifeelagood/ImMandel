@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 
+Vector2i Window::_resize({ 0,0 });
 
 Window::Window(LPCWSTR title, unsigned width, unsigned height)  {
 	_wc = {
@@ -145,6 +146,8 @@ bool Window::CreateDeviceD3D()
 		return false;
 
 	CreateRenderTarget();
+
+	return true;
 }
 
 void Window::CleanupDeviceD3D()
@@ -171,6 +174,8 @@ void Window::CleanupRenderTarget()
 // Forward declare message handler from imgui_impl_win32.cpp
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+
+
 LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
@@ -181,8 +186,8 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 	case WM_SIZE:
 		if (wParam == SIZE_MINIMIZED)
 			return 0;
-		_resize.x() = (UINT)LOWORD(lParam); // Queue resize
-		_resize.y() = (UINT)HIWORD(lParam);
+		Window::_resize.x() = (UINT)LOWORD(lParam); // Queue resize
+		Window::_resize.y() = (UINT)HIWORD(lParam);
 		return 0;
 	case WM_SYSCOMMAND:
 		if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu

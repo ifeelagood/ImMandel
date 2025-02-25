@@ -48,7 +48,7 @@ void generateCoords(const Vector2i& window, const Matrix<T,3,3>& transform, T* c
 	for (int i = 0; i < window.y(); i++) {
 		for (int j = 0; j < window.x(); j++) {
 			Vector3<T> c = transform * Vector3<T>(static_cast<T>(j), static_cast<T>(i), 1);
-			size_t idx = i * window.x() + j;
+			size_t idx = i * window.x() + j; 
 
 			cx[idx] = c.x();
 			cy[idx] = c.y();

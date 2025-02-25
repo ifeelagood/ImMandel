@@ -33,7 +33,7 @@ private:
 	ID3D11RenderTargetView* _renderTargetView;
 	bool _swapChainOccluded = false;
 	
-	static Vector2i _resize;
+	
 
 	bool _shouldClose = false;
 
@@ -56,4 +56,7 @@ public:
 
 public:
 	bool ShouldClose() const { return _shouldClose; }
+
+public:
+	static Vector2i _resize;
 };
