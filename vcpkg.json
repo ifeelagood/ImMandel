@@ -1,11 +1,13 @@
 {
   "dependencies": [
+    "eigen3",
     {
       "name": "imgui",
       "features": [
-        "docking-experimental"
+        "docking-experimental",
+        "dx11-binding",
+        "win32-binding"
       ]
-    },
-    "eigen3"
+    }
   ]
 }

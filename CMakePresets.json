@@ -19,7 +19,7 @@
       },
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_TOOLCHAIN_FILE": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/vcpkg/scripts/buildsystems/vcpkg.cmake",
         "CMAKE_FIND_DEBUG_MODE": true
       },
       "environment": {
@@ -103,6 +103,32 @@
         "CMAKE_BUILD_TYPE": "Debug",
         "SANITIZE": "address"
       }
+    },
+    {
+      "name": "windows-x64-relwithdebinfo",
+      "inherits": "windows-base",
+      "displayName": "x64 RelWithDebInfo",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "SANITIZE": false
+      }
+    },
+    {
+      "name": "windows-x86-relwithdebinfo",
+      "inherits": "windows-base",
+      "displayName": "x86 RelWithDebInfo",
+      "architecture": {
+        "value": "x86",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "SANITIZE": false
+      }
     }
   ],
   "buildPresets": [
@@ -152,6 +178,18 @@
       "inherits": "windows-base",
       "displayName": "x86 sanitize=address",
       "configurePreset": "windows-x86-asan"
+    },
+    {
+      "name": "windows-x64-relwithdebinfo",
+      "inherits": "windows-base",
+      "displayName": "x64 RelWithDebInfo",
+      "configurePreset": "windows-x64-relwithdebinfo"
+    },
+    {
+      "name": "windows-x86-relwithdebinfo",
+      "inherits": "windows-base",
+      "displayName": "x86 RelWithDebInfo",
+      "configurePreset": "windows-x86-relwithdebinfo"
     }
   ],
   "testPresets": [
@@ -207,6 +245,18 @@
       "inherits": "windows-base",
       "displayName": "x86 sanitize=address",
       "configurePreset": "windows-x86-asan"
+    },
+    {
+      "name": "windows-x64-relwithdebinfo",
+      "inherits": "windows-base",
+      "displayName": "x64 RelWithDebInfo",
+      "configurePreset": "windows-x64-relwithdebinfo"
+    },
+    {
+      "name": "windows-x86-relwithdebinfo",
+      "inherits": "windows-base",
+      "displayName": "x86 RelWithDebInfo",
+      "configurePreset": "windows-x86-relwithdebinfo"
     }
   ]
 }
