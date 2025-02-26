@@ -30,11 +30,14 @@ Window::Window(LPCWSTR title, unsigned width, unsigned height)  {
 		nullptr, nullptr, _wc.hInstance, nullptr
 	);
 
+	_device = std::make_unique<Device>(_hWnd);
+
+	/*
 	if (!CreateDeviceD3D()) {
 		throw std::runtime_error("could not create d3d device");
 		UnregisterClassW(_wc.lpszClassName, _wc.hInstance);
 		return;
-	}
+	}*/
 
 	ShowWindow(_hWnd, SW_SHOWDEFAULT);
 	UpdateWindow(_hWnd);
@@ -48,21 +51,24 @@ Window::Window(LPCWSTR title, unsigned width, unsigned height)  {
 	ImGui::StyleColorsDark();
 
 	ImGui_ImplWin32_Init(_hWnd);
-	ImGui_ImplDX11_Init(_device, _deviceContext);
+
+	_device->InitializeImGuiDX11(); // ImGui_ImplDX11_Init()
+
 }
 
 Window::~Window()
 {
-	ImGui_ImplDX11_Shutdown();
+	_device.release();
+
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
 
-	CleanupDeviceD3D();
+	
 	DestroyWindow(_hWnd);
 	UnregisterClassW(_wc.lpszClassName, _wc.hInstance);
 }
 
-void Window::BeginFrame()
+void Window::HandleMessages()
 {
 	// poll and handle messages (input, window resize, etc.)
 
@@ -76,100 +82,42 @@ void Window::BeginFrame()
 			_shouldClose = true;
 		}
 	}
+}
 
-	/*
-	if (_swapChainOccluded && _swapChain->Present(0, DXGI_PRESENT_TEST) == DXGI_STATUS_OCCLUDED) {
-		Sleep(10);
-		continue;
-	}
-	_swapChainOccluded = false;
-	*/
+bool Window::SwapChainReady()
+{
+	return !_device->SwapChainOccluded(); // i know, inverting makes it slightly confusing. didn't want to name it Window::SwapChainOccluded
+}
+
+void Window::BeginFrame()
+{
+
 
 	if (_resize.x() != 0 && _resize.y() != 0) {
-		CleanupRenderTarget();
-		_swapChain->ResizeBuffers(0, _resize.x(), _resize.y(), DXGI_FORMAT_UNKNOWN, 0);
+		_device->ResizeBuffer(_resize);
 		_resize.x() = _resize.y() = 0;
-		CreateRenderTarget();
 	}
 
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
-
 }
 
 void Window::EndFrame(bool vsync)
 {
 	ImGui::Render();
 
-	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-	const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
-	_deviceContext->OMSetRenderTargets(1, &_renderTargetView, nullptr);
-	_deviceContext->ClearRenderTargetView(_renderTargetView, clear_color_with_alpha);
+	Vector4f clear_color({ 0.45f, 0.55f, 0.60f, 1.00f });
+	_device->ClearRenderTargetView(clear_color);
+
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 	// Present
-	HRESULT hr = _swapChain->Present(vsync ? 1 : 0, 0);   // Present with vsync
-	_swapChainOccluded = (hr == DXGI_STATUS_OCCLUDED);
+	_device->Present(vsync);
 }
 
-bool Window::CreateDeviceD3D()
-{
-	// Setup swap chain
-	DXGI_SWAP_CHAIN_DESC sd;
-	ZeroMemory(&sd, sizeof(sd));
-	sd.BufferCount = 2;
-	sd.BufferDesc.Width = 0;
-	sd.BufferDesc.Height = 0;
-	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	sd.BufferDesc.RefreshRate.Numerator = 60;
-	sd.BufferDesc.RefreshRate.Denominator = 1;
-	sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	sd.OutputWindow = _hWnd;
-	sd.SampleDesc.Count = 1;
-	sd.SampleDesc.Quality = 0;
-	sd.Windowed = TRUE;
-	sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
-	UINT createDeviceFlags = 0;
 
-#ifdef _DX11_ENABLE_DEBUG_LAYER
-	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
-	D3D_FEATURE_LEVEL featureLevel;
-	const D3D_FEATURE_LEVEL featureLevelArray[2] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_0, };
-	HRESULT res = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags, featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &_swapChain, &_device, &featureLevel, &_deviceContext);
-	if (res == DXGI_ERROR_UNSUPPORTED) // Try high-performance WARP software driver if hardware is not available.
-		res = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_WARP, nullptr, createDeviceFlags, featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &_swapChain, &_device, &featureLevel, &_deviceContext);
-	if (res != S_OK)
-		return false;
-
-	CreateRenderTarget();
-
-	return true;
-}
-
-void Window::CleanupDeviceD3D()
-{
-	CleanupRenderTarget();
-	if (_swapChain) { _swapChain->Release(); _swapChain = nullptr; }
-	if (_deviceContext) { _deviceContext->Release(); _deviceContext = nullptr; }
-	if (_device) { _device->Release(); _device = nullptr; }
-}
-
-void Window::CreateRenderTarget()
-{
-	ID3D11Texture2D* backBuffer;
-	_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
-	_device->CreateRenderTargetView(backBuffer, nullptr, &_renderTargetView);
-	backBuffer->Release();
-}
-
-void Window::CleanupRenderTarget()
-{
-	if (_renderTargetView) { _renderTargetView->Release(); _renderTargetView = nullptr; }
-}
 
 // Forward declare message handler from imgui_impl_win32.cpp
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);

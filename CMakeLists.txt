@@ -18,7 +18,7 @@ set(IMMANDEL_SOURCE_DIR
 set(IMMANDEL_SOURCE
     src/main.cpp
 
- )
+  "src/Device.h" "src/Device.cpp")
 set(IMMANDEL_LIBRARIES_DIR
     libs
 )
