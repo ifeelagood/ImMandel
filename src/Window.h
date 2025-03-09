@@ -22,11 +22,8 @@
 #pragma comment(lib, "dxguid.lib")
 #endif
 
-
-
 using Eigen::Vector2i;
 using Eigen::Vector4f;
-
 
 class Window {
 private:

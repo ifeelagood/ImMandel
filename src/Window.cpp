@@ -32,13 +32,6 @@ Window::Window(LPCWSTR title, unsigned width, unsigned height)  {
 
 	_device = std::make_unique<Device>(_hWnd);
 
-	/*
-	if (!CreateDeviceD3D()) {
-		throw std::runtime_error("could not create d3d device");
-		UnregisterClassW(_wc.lpszClassName, _wc.hInstance);
-		return;
-	}*/
-
 	ShowWindow(_hWnd, SW_SHOWDEFAULT);
 	UpdateWindow(_hWnd);
 
@@ -91,14 +84,12 @@ bool Window::SwapChainReady()
 
 void Window::BeginFrame()
 {
-
-
 	if (_resize.x() != 0 && _resize.y() != 0) {
 		_device->ResizeBuffer(_resize);
 		_resize.x() = _resize.y() = 0;
 	}
 
-	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplDX11_NewFrame(); // TODO should this be moved to Device?
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 }
@@ -110,7 +101,7 @@ void Window::EndFrame(bool vsync)
 	Vector4f clear_color({ 0.45f, 0.55f, 0.60f, 1.00f });
 	_device->ClearRenderTargetView(clear_color);
 
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData()); //  // TODO should this be moved to Device?
 
 	// Present
 	_device->Present(vsync);

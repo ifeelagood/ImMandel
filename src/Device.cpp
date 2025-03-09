@@ -51,10 +51,10 @@ bool Device::CreateDeviceD3D(HWND hWnd, unsigned refreshRate)
 		2,
 		D3D11_SDK_VERSION,
 		&sd,
-		&_swapChain,
-		&_device,
+		_swapChain.GetAddressOf(),
+		_device.GetAddressOf(),
 		&featureLevel,
-		&_deviceContext
+		_deviceContext.GetAddressOf()
 	);
 
 	// Try high-performance WARP software driver if hardware is not available.
@@ -68,10 +68,10 @@ bool Device::CreateDeviceD3D(HWND hWnd, unsigned refreshRate)
 			2,
 			D3D11_SDK_VERSION,
 			&sd,
-			&_swapChain,
-			&_device,
+			_swapChain.GetAddressOf(),
+			_device.GetAddressOf(),
 			&featureLevel,
-			&_deviceContext
+			_deviceContext.GetAddressOf()
 		);
 	}
 	if (res != S_OK) {
@@ -117,7 +117,7 @@ void Device::CleanupRenderTarget()
 
 bool Device::InitializeImGuiDX11()
 {
-	return ImGui_ImplDX11_Init(_device, _deviceContext);
+	return ImGui_ImplDX11_Init(_device.Get(), _deviceContext.Get());
 }
 
 void Device::ResizeBuffer(const Eigen::Vector2i& size)
@@ -142,8 +142,8 @@ void Device::ClearRenderTargetView(const Vector4f& color)
 {
 	const float colorarr[4] = { color.x() * color.w(),color.y() * color.w(),color.z() * color.w(), color.w() };
 
-	_deviceContext->OMSetRenderTargets(1, &_renderTargetView, nullptr);
-	_deviceContext->ClearRenderTargetView(_renderTargetView, colorarr);
+	_deviceContext->OMSetRenderTargets(1, _renderTargetView.GetAddressOf(), nullptr);
+	_deviceContext->ClearRenderTargetView(_renderTargetView.Get(), colorarr);
 }
 
 void Device::Present(bool vsync)
