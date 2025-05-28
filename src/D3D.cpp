@@ -170,14 +170,13 @@ void D3D::resize(const Vector2i& size)
 
 }
 
-MappedRegion<uint32_t> D3D::map() {
+std::span<uint32_t> D3D::map() {
 	_context->Map(_dynamic_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &_mapped);
 
 	D3D11_TEXTURE2D_DESC tex_desc;
 	_dynamic_buffer->GetDesc(&tex_desc);
 
-	MappedRegion<uint32_t> resource(_mapped.pData, tex_desc.Width * tex_desc.Height);
-	return resource;
+	return std::span<uint32_t>(reinterpret_cast<uint32_t*>(_mapped.pData), tex_desc.Width * tex_desc.Height);
 
 }
 

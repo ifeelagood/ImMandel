@@ -39,10 +39,10 @@ int Application::run()
 		_gui->new_frame();
 		_gui->show_demo_window();
 
-		MappedRegion<uint32_t> buffer = _d3d->map();
+		std::span<uint32_t> buffer = _d3d->map();
 
 		// dummy data
-		for (size_t i = 0; i < buffer.size; i++) {
+		for (size_t i = 0; i < buffer.size(); i++) {
 			buffer[i] = rand() % _greyscale_shader->parameters().max_it;
 		}
 

@@ -26,7 +26,6 @@ set(IMMANDEL_SOURCE
     "src/Application.h"
     "src/Application.cpp"
 #    "src/Engine.h"
-    "src/MappedRegion.h"
 #    "src/Transform.h"
     "src/GUI.h"
     "src/GUI.cpp"

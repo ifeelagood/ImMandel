@@ -11,6 +11,7 @@
 #include <Eigen/Dense>
 
 #include <string>
+#include <span>
 
 #include "MappedRegion.h"
 
@@ -51,7 +52,7 @@ public:
 	void resize(const Vector2i& size);
 
 	// creates a mapped memory region to the dynamic buffer
-	MappedRegion<uint32_t> map();
+	std::span<uint32_t> map();
 
 	// unmaps the dynamic buffer
 	void unmap();
