@@ -30,7 +30,8 @@ set(IMMANDEL_SOURCE
 #    "src/Transform.h"
     "src/GUI.h"
     "src/GUI.cpp"
-)
+    "src/Shader.h"
+ "src/ShaderParameters.h")
 set(IMMANDEL_LIBRARIES_DIR
     libs
 )
