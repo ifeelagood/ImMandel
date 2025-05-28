@@ -81,17 +81,24 @@ D3D::~D3D()
 {
 }
 
-void D3D::clear_rtv()
-{
+
+void D3D::render() {
+
+
+	// clear RTV
 	const float color[4] = { 0.f,0.f,0.f,0.f };
 	_context->ClearRenderTargetView(_rtv.Get(), color);
-}
 
-void D3D::copy_dynamic_to_back_buffer()
-{
-	_context->CopyResource(_dynamic_buffer.Get(), _back_buffer.Get());
-}
+	_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	
+	_context->PSSetShaderResources(0, 1, _srv.GetAddressOf());
 
+	_context->Draw(3, 0); // draw fullscreen triangle
+
+
+	//_context->CopyResource(_dynamic_buffer.Get(), _back_buffer.Get());
+
+}
 
 
 
@@ -116,14 +123,15 @@ void D3D::resize(const Vector2i& size)
 	// reaquire back buffer
 	_swap_chain->GetBuffer(0, IID_PPV_ARGS(_back_buffer.GetAddressOf()));
 
-	// create srv and rtv
+	// create rtv for back buffer
 	_device->CreateRenderTargetView(_back_buffer.Get(), nullptr, _rtv.GetAddressOf());
-	_device->CreateShaderResourceView(_back_buffer.Get(), nullptr, _srv.GetAddressOf());
 
 	// set render target view
 	_context->OMSetRenderTargets(1, _rtv.GetAddressOf(), nullptr);
 
-	// create texture
+	HRESULT hr;
+
+	// create dynamic buffer texture
 	D3D11_TEXTURE2D_DESC tex_desc = {};
 	tex_desc.Width = size.x();
 	tex_desc.Height = size.y();
@@ -132,10 +140,34 @@ void D3D::resize(const Vector2i& size)
 	tex_desc.Format = DXGI_FORMAT_R32_UINT; 
 	tex_desc.SampleDesc.Count = 1;
 	tex_desc.Usage = D3D11_USAGE_DYNAMIC; // allows for multiple threads to write to mapped data
-	tex_desc.BindFlags = 0; // not bound to pipeline 
+	tex_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE; 
 	tex_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-	_device->CreateTexture2D(&tex_desc, nullptr, _dynamic_buffer.GetAddressOf());
+	hr = _device->CreateTexture2D(&tex_desc, nullptr, _dynamic_buffer.GetAddressOf());
+
+	if (FAILED(hr)) {
+		throw std::runtime_error("could not create dynamic buffer texture");
+	}
+
+	// create srv for the dynamic buffer
+	D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
+	srv_desc.Format = tex_desc.Format;
+	srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srv_desc.Texture2D.MipLevels = 1;
+
+	_device->CreateShaderResourceView(_dynamic_buffer.Get(), &srv_desc, _srv.GetAddressOf());
+
+	// set viewport
+	D3D11_VIEWPORT viewport = {};
+	viewport.TopLeftX = 0;
+	viewport.TopLeftY = 0;
+	viewport.Width = static_cast<float>(size.x());
+	viewport.Height = static_cast<float>(size.y());
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+
+	_context->RSSetViewports(1, &viewport);
+
 }
 
 MappedRegion<uint32_t> D3D::map() {
@@ -144,8 +176,7 @@ MappedRegion<uint32_t> D3D::map() {
 	D3D11_TEXTURE2D_DESC tex_desc;
 	_dynamic_buffer->GetDesc(&tex_desc);
 
-
-	MappedRegion<uint32_t> resource(_mapped.pData, _mapped.RowPitch, tex_desc.Width * tex_desc.Height);
+	MappedRegion<uint32_t> resource(_mapped.pData, tex_desc.Width * tex_desc.Height);
 	return resource;
 
 }

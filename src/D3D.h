@@ -27,6 +27,9 @@ private:
 	ComPtr<ID3D11RenderTargetView> _rtv;
 	ComPtr<ID3D11ShaderResourceView> _srv;
 	ComPtr<ID3D11Texture2D> _dynamic_buffer; // for writing to the CPU as swap chain back buffer cannot be mapped
+	
+	ComPtr<ID3D11VertexShader> _vs;
+	ComPtr<ID3D11PixelShader> _ps;
 
 	D3D11_MAPPED_SUBRESOURCE _mapped = {};
 
@@ -38,10 +41,8 @@ public:
 	~D3D();
 
 public:
-	// clear render target view to back
-	void clear_rtv();
-
-	void copy_dynamic_to_back_buffer();
+	// renders data from the dynamic buffer onto the swap chain
+	void render();
 
 	// present swap chain and check whether its occluded
 	void present(bool vsync = true);
