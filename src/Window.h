@@ -2,16 +2,13 @@
 
 #include <memory>
 
-#include <imgui.h>
-#include <imgui_impl_win32.h>
-#include <imgui_impl_dx11.h>
+
 #include <d3d11.h>
 #include <dxgi1_4.h>
 #include <tchar.h>
 #include <Windows.h>
 #include <Eigen/Dense>
 
-#include "Device.h"
 
 #ifdef _DEBUG
 #define DX11_ENABLE_DEBUG_LAYER
@@ -27,14 +24,9 @@ using Eigen::Vector4f;
 
 class Window {
 private:
-	std::unique_ptr<Device> _device;
-private:
 	WNDCLASSEXW _wc;
 	HWND _hWnd;
-	bool _shouldClose = false;
-
-private:
-	static Vector2i _resize;
+	bool _should_close = false;
 
 private:
 	static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -44,11 +36,15 @@ public:
 	~Window();
 
 public:
-	void HandleMessages();
-	bool SwapChainReady();
-	void BeginFrame();
-	void EndFrame(bool vsync = true);
+	// when window is resized, new size is stored in here.
+	static Vector2i resize;
 
 public:
-	bool ShouldClose() const { return _shouldClose; }
+	// poll and handle messages (input, window resize, etc.). must be called start of each frame.
+	void handle_messages();
+
+
+public:
+	bool should_close() const { return _should_close; }
+	HWND get_handle() const { return _hWnd;  }
 };
