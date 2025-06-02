@@ -13,7 +13,7 @@
 #include <string>
 #include <span>
 
-#include "MappedRegion.h"
+#include "Surface.h"
 
 using Microsoft::WRL::ComPtr;
 using Eigen::Vector2i;
@@ -28,7 +28,7 @@ private:
 	ComPtr<ID3D11RenderTargetView> _rtv;
 	ComPtr<ID3D11ShaderResourceView> _srv;
 	ComPtr<ID3D11Texture2D> _dynamic_buffer; // for writing to the CPU as swap chain back buffer cannot be mapped
-	
+
 	ComPtr<ID3D11VertexShader> _vs;
 	ComPtr<ID3D11PixelShader> _ps;
 
@@ -40,7 +40,6 @@ private:
 public:
 	D3D(HWND window_handle);
 	~D3D();
-
 public:
 	// renders data from the dynamic buffer onto the swap chain
 	void render();
@@ -52,7 +51,7 @@ public:
 	void resize(const Vector2i& size);
 
 	// creates a mapped memory region to the dynamic buffer
-	std::span<uint32_t> map();
+	Surface<uint32_t> map();
 
 	// unmaps the dynamic buffer
 	void unmap();
