@@ -1,6 +1,8 @@
 {
   "dependencies": [
+    "boost-multiprecision",
     "eigen3",
+    "gmp",
     {
       "name": "imgui",
       "features": [
@@ -8,6 +10,8 @@
         "dx11-binding",
         "win32-binding"
       ]
-    }
+    },
+    "pkgconf",
+    "mpfr"
   ]
 }
