@@ -56,6 +56,18 @@ void Window::handle_messages()
 	}
 }
 
+Eigen::Vector2i Window::get_size()
+{
+	RECT rect;
+	if (GetWindowRect(_hWnd, &rect)) {
+		Vector2i window_size = { rect.right - rect.left, rect.bottom - rect.top };
+		return window_size;
+	}
+	else {
+		throw std::runtime_error("Initial query of window size failed");
+	}
+}
+
 // Forward declare message handler from imgui_impl_win32.cpp
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 

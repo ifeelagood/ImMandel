@@ -47,4 +47,6 @@ public:
 public:
 	bool should_close() const { return _should_close; }
 	HWND get_handle() const { return _hWnd;  }
+
+	Eigen::Vector2i get_size();
 };
