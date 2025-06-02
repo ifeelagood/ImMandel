@@ -33,9 +33,17 @@ void GUI::new_frame()
 
 void GUI::render()
 {
+	for (auto& drawable : _draw_list) {
+		drawable->draw();
+	}
+
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-	
+}
+
+void GUI::register_drawable(std::unique_ptr<ImGuiDrawable> drawable)
+{
+	_draw_list.emplace_back(std::move(drawable));
 }
 
 void GUI::show_demo_window()
