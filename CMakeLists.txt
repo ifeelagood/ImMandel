@@ -7,9 +7,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "/O2")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 20)
 
-#################
-### Variables ###
-#################
+add_compile_options(/EHsc) # enable exception
 
 set(IMMANDEL_PROJECT_NAME
     ImMandel
@@ -25,12 +23,18 @@ set(IMMANDEL_SOURCE
     "src/Window.cpp"
     "src/Application.h"
     "src/Application.cpp"
-#    "src/Engine.h"
-#    "src/Transform.h"
+    "src/Engine.h"
+    "src/EscapeTimeEngine.h"
+    "src/Transform.h"
     "src/GUI.h"
     "src/GUI.cpp"
     "src/Shader.h"
- "src/ShaderParameters.h")
+    "src/ShaderParameters.h" 
+    "src/ImGui_mpfr.cpp"
+    "src/ImGui_mpfr.h" 
+    "src/TransformGUI.h" 
+    "src/Surface.h"
+   )
 set(IMMANDEL_LIBRARIES_DIR
     libs
 )
@@ -40,11 +44,9 @@ set(IMMANDEL_LIBRARIES
 
 project(${IMMANDEL_PROJECT_NAME} LANGUAGES CXX)
 
-###############
-### Project ###
-###############
 
-add_executable(${PROJECT_NAME} ${IMMANDEL_SOURCE})
+
+add_executable(${PROJECT_NAME} ${IMMANDEL_SOURCE}  "src/EscapeTimeEngine.h" )
 
 foreach(LIBRARY ${IMMANDEL_LIBRARIES})
     add_subdirectory("${IMMANDEL_LIBRARIES_DIR}/${LIBRARY}")
@@ -52,18 +54,20 @@ endforeach(LIBRARY)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${IMMANDEL_LIBRARIES})
 
-
-####################
-### Dependencies ###
-####################
+# vcpkg libraries
 
 # https://cmake.org/cmake/help/latest/command/find_package.html
 
 
 find_package(imgui CONFIG REQUIRED)
 find_package(Eigen3 CONFIG REQUIRED)
+find_package(Boost REQUIRED)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE imgui::imgui Eigen3::Eigen)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(gmp REQUIRED IMPORTED_TARGET gmp)
+pkg_check_modules(mpfr REQUIRED IMPORTED_TARGET mpfr)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE imgui::imgui Eigen3::Eigen Boost::boost PkgConfig::gmp PkgConfig::mpfr)
 
 # directx
 
