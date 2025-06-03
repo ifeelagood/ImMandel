@@ -40,16 +40,21 @@ public:
 
 
 public:
-	// transform a single point
-	Eigen::Vector2<T> transform_point(const Eigen::Vector2<T>& p);
+	// transform a single point from screen space to fractal space
+	Eigen::Vector2<T> transform_point(const Eigen::Vector2<T> p);
+
+	// inverse transfrom from fractal space to screen space
+	Eigen::Vector2<T> inverse_transform_point(const Eigen::Vector2<T> p);
 	
 	// generate and transform all points. x and y are sized size.x * size.y, must be deleted after
 	void transform_all(T*& x, T*& y) const;
+
+	Eigen::Vector2<T> centre();
 public:
 	// non trivial setters update transformation matrix after
 
 	void set_position(const Eigen::Vector2<T>& position);
-	void set_zoom(unsigned long long zoom);
+	void set_zoom(unsigned long long zoom, const Eigen::Vector2<T> point);
 	void set_rect(const Eigen::Vector4<T>& rect);
 	void set_size(const Eigen::Vector2i& size);
 
@@ -89,9 +94,15 @@ inline void Transform<T>::compute_transform()
 
 
 template<Real T>
-inline Eigen::Vector2<T> Transform<T>::transform_point(const Eigen::Vector2<T>& p)
+inline Eigen::Vector2<T> Transform<T>::transform_point(const Eigen::Vector2<T> p)
 {
 	return _scale.cwiseProduct(p) + _position;
+}
+
+template<Real T>
+inline Eigen::Vector2<T> Transform<T>::inverse_transform_point(const Eigen::Vector2<T> p)
+{
+	return (p - _position).cwiseQuotient(_scale);
 }
 
 template<Real T>
@@ -112,6 +123,12 @@ inline void Transform<T>::transform_all(T*& x, T*& y) const
 }
 
 template<Real T>
+inline Eigen::Vector2<T> Transform<T>::centre()
+{
+	return _position + _scale.cwiseProduct(_size.cast<T>() / 2.0);
+}
+
+template<Real T>
 inline void Transform<T>::set_position(const Eigen::Vector2<T>& position)
 {
 	_position = position;
@@ -119,16 +136,12 @@ inline void Transform<T>::set_position(const Eigen::Vector2<T>& position)
 }
 
 template<Real T>
-inline void Transform<T>::set_zoom(unsigned long long zoom)
+inline void Transform<T>::set_zoom(unsigned long long zoom, const Eigen::Vector2<T> point)
 {
-	// modify scale in place 
-	//_scale.x() = (_scale.x() * static_cast<T>(_zoom)) / static_cast<T>(zoom);
-	//_scale.y() = (_scale.y() * static_cast<T>(_zoom)) / static_cast<T>(zoom);
-
-	Eigen::Vector2<T> center = _position + _scale.cwiseProduct(_size.cast<T>() / 2.0);
+	Eigen::Vector2<T> screen = inverse_transform_point(point);
 	_zoom = zoom;
 	compute_transform();
-	_position = center - _scale.cwiseProduct(_size.cast<T>() / 2.0); // preserve center
+	_position = point - screen.cwiseProduct(_scale); // preserve centre location
 	_changed = true;
 }
 
