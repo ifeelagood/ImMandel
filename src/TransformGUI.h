@@ -99,9 +99,7 @@ inline void TransformGUI<T>::draw()
 
 		// click to move centre
 		if (io.MouseClicked[ImGuiMouseButton_Right]) {
-
-
-			_transform.set_position(_cursor_pos - _transform.centre() + _transform.get_position()); // error: position is top left. we need to make it centered. get centre by .centre()
+			_transform.set_position(_cursor_pos); // error: position is top left. we need to make it centered. get centre by .centre()
 		}
 
 		// mouse wheel zoom 
