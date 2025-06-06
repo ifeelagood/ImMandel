@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "macros.h"
 #include "Transform.h"
 
 TEST(TransformTests, ChangedSetsAndResets) {
@@ -17,14 +18,9 @@ TEST(TransformTests, TransformComposedWithInverseIsIdentity) {
 
 	Eigen::Vector2<float> a = { 1.0, 1.0 };
 	Eigen::Vector2<float> b = { 0.0, 1.0 };
-	Eigen::Vector2<float> a_id = t.inverse_transform_point(t.transform_point(a));
-	Eigen::Vector2<float> b_id = t.inverse_transform_point(t.transform_point(b));
 
 	constexpr float eps = 0.000001f;
 
-	EXPECT_NEAR(a_id.x(), a.x(), eps);
-	EXPECT_NEAR(a_id.y(), a.y(), eps);
-
-	EXPECT_NEAR(b_id.x(), b.x(), eps);
-	EXPECT_NEAR(b_id.y(), b.y(), eps);
+	EXPECT_EIGEN_VECTOR2_NEAR(a, t.inverse_transform_point(t.transform_point(a)), eps);
+	EXPECT_EIGEN_VECTOR2_NEAR(b, t.inverse_transform_point(t.transform_point(b)), eps);
 }
