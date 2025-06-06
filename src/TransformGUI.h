@@ -50,10 +50,10 @@ inline void TransformGUI<T>::draw()
 		Eigen::Vector2<T> topleft = _transform.transform_point({ 0.0,0.0 });
 		Eigen::Vector2<T> botright = _transform.transform_point(_transform.get_size().cast<T>());
 		
-		T step_x = (botright.x() - topleft.x()) / step_scalar;
-		T step_y = (botright.y() - topleft.y()) / step_scalar;
-		T step_fast_x = (botright.x() - topleft.x()) / step_fast_scalar;
-		T step_fast_y = (botright.y() - topleft.y()) / step_fast_scalar;
+		T step_x = (botright.x() - topleft.x()) * step_scalar;
+		T step_y = (botright.y() - topleft.y()) * step_scalar;
+		T step_fast_x = (botright.x() - topleft.x()) * step_fast_scalar;
+		T step_fast_y = (botright.y() - topleft.y()) * step_fast_scalar;
 
 		if constexpr (std::is_same_v<T, float>) {
 
