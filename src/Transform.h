@@ -22,18 +22,17 @@ class TransformGUI;
 template <Real T>
 class Transform {
 private:
-	Eigen::Vector2i _size; // size of screen in pixels
-	unsigned long long _zoom = 1; // 
-	Eigen::Vector2<T> _position = { 0.0, 0.0 };	// represents top left of viewport
+	unsigned long long _zoom = 1; // quotient of scale
 	Eigen::Vector4<T> _rect = { -2.0, 1.0, -1.5, 1.5 }; // (xmin, xmax, ymin, ymax)
+	Eigen::Vector2i _size; // size of screen in pixels
+	Eigen::Vector2<T> _position; // represents centre of viewport in fractal space
 
-	Eigen::Vector2<T> _scale; // invariant: this is updated in the setters
-	Eigen::Vector2<T> _translate;
+	// Eigen::Vector2<T> _scale; // invariant: this is updated in the setters
+	T _scale; // uniform scale
 
 	bool _changed = true;
 
 	void compute_scale();
-	void compute_translate();
 
 public:
 	Transform(Eigen::Vector2i size);
@@ -62,6 +61,7 @@ public:
 	const Eigen::Vector2i& get_size() const { return _size; };
 	const unsigned long long& get_zoom() const { return _zoom; };
 	const Eigen::Vector2<T>& get_position() const { return _position; };
+	const Eigen::Vector4<T>& get_rect() const { return _rect;  }
 
 	// get centre of screen in fractal coordinates
 	Eigen::Vector2<T> centre() const;
@@ -73,44 +73,48 @@ public:
 template<Real T>
 inline void Transform<T>::compute_scale()
 {
-	_scale = (_rect.segment<2>(1) - _rect.segment<2>(0)).cwiseQuotient(_size.cast<T>()) / static_cast<T>(_zoom);
+	Eigen::Vector2<T> range = {
+		_rect.y() - _rect.x(),
+		_rect.w() - _rect.z()
+	};
+	Eigen::Vector2<T> px_size = range.cwiseQuotient(_size.cast<T>());
+	_scale = px_size.maxCoeff() / static_cast<T>(_zoom);
 }
 
-template <Real T>
-inline void Transform<T>::compute_translate() {
-	_translate = _position - _scale.cwiseProduct(_size.cast<T>() / 2);
-}
 
 template<Real T>
 inline Transform<T>::Transform(Eigen::Vector2i size)
 	: _size(size)
 {
 	compute_scale();
-	compute_translate();
+
+	_position = Eigen::Vector2<T>({ _rect.x(), _rect.z() }) + _scale * (_size.cast<T>() / 2.0);
 }
 
 template<Real T>
 inline Eigen::Vector2<T> Transform<T>::transform_point(const Eigen::Vector2<T> p) const
 {
-	return _scale.cwiseProduct(p) + _translate;
+	return (p - _size.cast<T>() / 2) * _scale + _position;
 }
 
 template<Real T>
 inline Eigen::Vector2<T> Transform<T>::inverse_transform_point(const Eigen::Vector2<T> p) const
 {
-	return (p - _translate).cwiseQuotient(_scale);
+	return (p - _position) / _scale + _size.cast<T>() / 2;
 }
 
 template<Real T>
 inline void Transform<T>::transform_all(T*& x, T*& y) const
-{	
+{
+	const Eigen::Vector2<T> centre = _size.cast<T>() / 2;
+
 	x = new T[_size.x() * _size.y()];
 	y = new T[_size.x() * _size.y()];
 
 	for (size_t i = 0; i < _size.y(); i++) {
 		for (size_t j = 0; j < _size.x(); j++) {
-			x[_size.x() * i + j] = _scale.x() * static_cast<T>(j) + _translate.x();
-			y[_size.x() * i + j] = _scale.y() * static_cast<T>(i) + _translate.y();
+			x[_size.x() * i + j] = _scale * (static_cast<T>(j) - centre.x()) + _position.x();
+			y[_size.x() * i + j] = _scale * (static_cast<T>(i) - centre.y()) + _position.y();
 		}
 	}
 
@@ -120,19 +124,20 @@ template<Real T>
 inline void Transform<T>::set_position(const Eigen::Vector2<T>& position)
 {
 	_position = position;
-	compute_translate();
 	_changed = true;
 }
 
 template<Real T>
 inline void Transform<T>::set_zoom(unsigned long long zoom, const Eigen::Vector2<T> point)
 {	
-	Eigen::Vector2<T> point_screen = inverse_transform_point(point);
+	// point must be fixed. if p in screen space, t(p) = t'(p) 
+	Eigen::Vector2<T> anchor = inverse_transform_point(point);
 
-	_scale = _scale * static_cast<T>(_zoom) / static_cast<T>(zoom);
 	_zoom = zoom;
-	_translate = point - _scale.cwiseProduct(point_screen);
-	_position = _translate + _scale.cwiseProduct(_size.cast<T>() / 2);
+	compute_scale();
+
+	_position = point - _scale * (anchor - _size.cast<T>() / 2);
+
 	_changed = true;
 }
 
@@ -147,9 +152,15 @@ inline void Transform<T>::set_rect(const Eigen::Vector4<T>& rect)
 template<Real T>
 inline void Transform<T>::set_size(const Eigen::Vector2i& size)
 {
-	// modify screen size in place 
-	_scale = _scale.cwiseProduct(_size.cast<T>()).cwiseQuotient(size.cast<T>());
+	// t(centre) == t'(centre) 
+	Eigen::Vector2<T> offset_old = (_size.cast<T>() / 2 )* _scale;
+	
 	_size = size;
+	compute_scale(); // updates _scale
+
+	Eigen::Vector2<T> offset_new = (_size.cast<T>() / 2) * _scale;
+
+	_position += offset_old - offset_new;
 
 	_changed = true;
 }
