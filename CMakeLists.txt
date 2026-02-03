@@ -25,7 +25,7 @@ PUBLIC
     "src/ShaderParameters.h"
     "src/Surface.h"
     "src/ImGui_mpfr.h"
-)
+ "src/Pipeline.h")
 
 target_include_directories(ImMandelCore PUBLIC src)
 
@@ -48,13 +48,13 @@ find_package(Eigen3 CONFIG REQUIRED)
 find_package(Boost REQUIRED)
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(gmp REQUIRED IMPORTED_TARGET gmp)
+#pkg_check_modules(gmp REQUIRED IMPORTED_TARGET gmp)
 pkg_check_modules(mpfr REQUIRED IMPORTED_TARGET mpfr)
 
 
 target_link_libraries(ImMandelCore 
 PUBLIC 
-    imgui::imgui Eigen3::Eigen Boost::boost PkgConfig::gmp PkgConfig::mpfr
+    imgui::imgui Eigen3::Eigen Boost::boost PkgConfig::mpfr
     d3d11.lib dxgi.lib d3dcompiler.lib
 )
 
